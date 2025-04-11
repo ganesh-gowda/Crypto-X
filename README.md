@@ -1,8 +1,24 @@
-# React + Vite
+# CryptoX
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern cryptocurrency tracking application built with React and Vite.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Real-time cryptocurrency price tracking
+- Top 100 cryptocurrencies listing
+- Exchange information
+- Latest crypto news
+- Responsive design for all devices
+
+## Technologies Used
+
+- React
+- Vite
+- Tailwind CSS
+- Axios for API requests
+- React Router for navigation
+
+## Getting Started
+
+1. Clone the repository
+2. Install dependencies:

@@ -1,67 +1,198 @@
 
-import { Link } from 'react-router-dom'
-import logo from '../assets/logo.png'
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { FaBars, FaTimes, FaUser } from 'react-icons/fa';
+import { useAuth } from '../context/AuthContext';
+import { AppContext } from '../App';
+
 const Navbar = () => {
-  const [isNavOpen, setIsNavOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const { currentUser, logout } = useAuth();
+  const { vsCurrency, setVsCurrency } = useContext(AppContext);
+  const navigate = useNavigate();
+  
+  // Add state to control dropdown visibility
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Failed to log out', error);
+    }
+  };
+
   return (
-    <div className=' bg-[#3A3D57] py-4 border-b-2 border-slate-400'>
-        <nav className='flex flex-row justify-between text-lg text-white items-center mx-[100px]'>
-          <a href='/' className='flex flex-row items-center justify-center gap-3'>        
-            <img src={logo}/>
-            <h1 className='text-white font-bold text-3xl'>cryptoX</h1>          
-          </a>
-          <div className="space-y-2 xl:hidden flex items-center flex-col" onClick={() => setIsNavOpen((prev) => !prev)}>
-              <span className="block h-0.5 w-8 animate-pulse bg-white"></span>
-              <span className="block h-0.5 w-8 animate-pulse bg-white"></span>
-              <span className="block h-0.5 w-8 animate-pulse bg-white"></span>
-          </div>
-          <div className={isNavOpen ? "showMenuNav" : "hideMenuNav"}>
-              <div className="absolute top-0 right-0 px-8 py-8" onClick={() => setIsNavOpen(false)}>
-                        <svg
-                            className="h-8 w-8 text-r-blue"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="black"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        >
-                            <line x1="18" y1="6" x2="6" y2="18" />
-                            <line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
+    <nav className="bg-gray-800 py-4 px-6 shadow-lg">
+      <div className="container mx-auto flex justify-between items-center">
+        <Link to="/" className="text-2xl font-days font-bold text-white">
+          Crypto<span className="text-crypto-purple">X</span>
+        </Link>
+        
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center space-x-6">
+          <Link to="/" className="text-white hover:text-crypto-purple transition-colors">
+            Home
+          </Link>
+          <Link to="/market" className="text-white hover:text-crypto-purple transition-colors">
+            Market
+          </Link>
+          <Link to="/news" className="text-white hover:text-crypto-purple transition-colors">
+            News
+          </Link>
+          
+          {currentUser ? (
+            <>
+              <Link to="/portfolio" className="text-white hover:text-crypto-purple transition-colors">
+                Portfolio
+              </Link>
+              <div className="relative">
+                <button 
+                  className="flex items-center text-white hover:text-crypto-purple transition-colors"
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  onMouseEnter={() => setDropdownOpen(true)}
+                >
+                  <FaUser className="mr-2" />
+                  {currentUser.displayName || 'User'}
+                </button>
+                {dropdownOpen && (
+                  <div 
+                    className="absolute right-0 mt-2 w-48 bg-gray-700 rounded-lg shadow-xl py-2 z-10"
+                    onMouseEnter={() => setDropdownOpen(true)}
+                    onMouseLeave={() => setDropdownOpen(false)}
+                  >
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-white hover:bg-gray-600 transition-colors"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
               </div>
-            
-                <Link to="/coins">
-                    <h1 className='text-black'>Coins</h1>
-                  </Link>
-                  <Link to="/exchanges"><h1 className='text-black'>Exchanges</h1></Link>
-                  <Link to="/news"><h1 className='text-black'>News</h1></Link>
-                  <Link to="/">
-                    <button className='bg-gradient-to-b bg-[#886AFF] text-black rounded-md px-4 py-2'>Sign In</button>
-                  </Link>
-
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="text-white hover:text-crypto-purple transition-colors">
+                Login
+              </Link>
+              <Link 
+                to="/signup" 
+                className="bg-crypto-purple hover:bg-opacity-90 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                Sign Up
+              </Link>
+            </>
+          )}
+          
+          {/* Currency Selector */}
+          <select 
+            value={vsCurrency}
+            onChange={(e) => setVsCurrency(e.target.value)}
+            className="bg-gray-700 text-white rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-crypto-purple"
+          >
+            <option value="usd">USD</option>
+            <option value="inr">INR</option>
+            <option value="eur">EUR</option>
+            <option value="gbp">GBP</option>
+            <option value="jpy">JPY</option>
+          </select>
+        </div>
         
-                
-               
-                </div>
-
+        {/* Mobile Navigation Toggle */}
+        <button 
+          className="md:hidden text-white"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {isOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+        </button>
+      </div>
+      
+      {/* Mobile Navigation Menu */}
+      {isOpen && (
+        <div className="md:hidden bg-gray-800 mt-4 py-4 px-6">
+          <div className="flex flex-col space-y-4">
+            <Link 
+              to="/" 
+              className="text-white hover:text-crypto-purple transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              Home
+            </Link>
+            <Link 
+              to="/market" 
+              className="text-white hover:text-crypto-purple transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              Market
+            </Link>
+            <Link 
+              to="/news" 
+              className="text-white hover:text-crypto-purple transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              News
+            </Link>
             
-            <div className=' xl:flex flex-row gap-[100px] items-center  hidden '>
-                <Link to="/coins">
-                  <h1>Coins</h1>
+            {currentUser ? (
+              <>
+                <Link 
+                  to="/portfolio" 
+                  className="text-white hover:text-crypto-purple transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Portfolio
                 </Link>
-                <Link to="/exchanges"><h1>Exchanges</h1></Link>
-                <Link to="/news"><h1>News</h1></Link>
-                <Link to="/">
-                  <button className='bg-gradient-to-b from-white to-[#886AFF] text-black rounded-md px-4 py-2'>Sign In</button>
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setIsOpen(false);
+                  }}
+                  className="text-white hover:text-crypto-purple transition-colors text-left"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link 
+                  to="/login" 
+                  className="text-white hover:text-crypto-purple transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Login
                 </Link>
+                <Link 
+                  to="/signup" 
+                  className="bg-crypto-purple hover:bg-opacity-90 text-white px-4 py-2 rounded-lg transition-colors inline-block"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
+            
+            {/* Mobile Currency Selector - update options here too */}
+            <div className="pt-2">
+              <label className="block text-gray-400 mb-1">Currency</label>
+              <select 
+                value={vsCurrency}
+                onChange={(e) => setVsCurrency(e.target.value)}
+                className="bg-gray-700 text-white rounded-lg px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-crypto-purple"
+              >
+                <option value="usd">USD</option>
+                <option value="inr">INR</option>
+                <option value="eur">EUR</option>
+                <option value="gbp">GBP</option>
+                <option value="jpy">JPY</option>
+              </select>
             </div>
-        
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+};
 
-        </nav>
-    </div>
-  )
-}
-
-export default Navbar
+export default Navbar;
