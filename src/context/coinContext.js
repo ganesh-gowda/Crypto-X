@@ -12,19 +12,48 @@ const getAllExchanges = async() =>{
   return response.data;
 }
 
-
 const getAllNews = async() =>{
   const options = {
     method: 'GET',
     url: 'https://crypto-news16.p.rapidapi.com/news/top/20',
     headers: {
-      'X-RapidAPI-Key': 'e7e88df7d5mshfc64d57dade1f5cp19c7cajsnbfb285320d55',
-      'X-RapidAPI-Host': 'crypto-news16.p.rapidapi.com'
+      'X-RapidAPI-Key': import.meta.env.VITE_API_KEY,
+      'X-RapidAPI-Host': import.meta.env.VITE_API_HOST
     }
   };
-  const response = await axios.request(options);
+  
+  try {
+    const response = await axios.request(options);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// New functions for enhanced features
+const getCoinDetails = async (coinId) => {
+  const apiLink = `https://api.coingecko.com/api/v3/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`;
+  const response = await axios.get(apiLink);
   return response.data;
+}
+
+const getCoinHistory = async (coinId, vsCurrency, days) => {
+  const apiLink = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=${vsCurrency}&days=${days}`;
+  const response = await axios.get(apiLink);
+  return response.data;
+}
+
+const searchCoins = async (query) => {
+  const apiLink = `https://api.coingecko.com/api/v3/search?query=${query}`;
+  const response = await axios.get(apiLink);
+  return response.data;
+}
+
+export { 
+  getAllCurrencies, 
+  getAllExchanges, 
+  getAllNews, 
+  getCoinDetails, 
+  getCoinHistory,
+  searchCoins
 };
-
-
-export {getAllCurrencies, getAllExchanges, getAllNews};
