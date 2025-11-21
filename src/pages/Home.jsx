@@ -1,10 +1,12 @@
 import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import GlobalSearchBar from '../components/GlobalSearchBar';
 import { AppContext } from "../App";
 import { useCryptoData } from '../hooks/useCryptoData';
 import { useAuth } from '../context/AuthContext';
 import { SkeletonTable } from '../components/Skeleton';
+import { FaChartLine, FaBriefcase, FaBell } from 'react-icons/fa';
 
 const Home = () =>
    {
@@ -40,6 +42,12 @@ const Home = () =>
           <p className="text-xl text-gray-300 mb-8">
             Real-time cryptocurrency prices, portfolio tracking, and market insights
           </p>
+          
+          {/* Global Search Bar */}
+          <div className="mb-8">
+            <GlobalSearchBar />
+          </div>
+          
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link
               to="/market"
@@ -131,7 +139,7 @@ const Home = () =>
         {/* Features Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
           <div className="bg-gray-800 p-6 rounded-xl shadow-card">
-            <div className="text-crypto-purple text-4xl mb-4">📊</div>
+            <div className="text-crypto-purple text-4xl mb-4"><FaChartLine /></div>
             <h3 className="text-xl font-bold mb-2">Real-Time Tracking</h3>
             <p className="text-gray-300">
               Monitor cryptocurrency prices and market movements in real-time with accurate data.
@@ -139,7 +147,7 @@ const Home = () =>
           </div>
           
           <div className="bg-gray-800 p-6 rounded-xl shadow-card">
-            <div className="text-crypto-purple text-4xl mb-4">💼</div>
+            <div className="text-crypto-purple text-4xl mb-4"><FaBriefcase /></div>
             <h3 className="text-xl font-bold mb-2">Portfolio Management</h3>
             <p className="text-gray-300">
               Track your crypto holdings, analyze performance, and manage your investments.
@@ -147,7 +155,7 @@ const Home = () =>
           </div>
           
           <div className="bg-gray-800 p-6 rounded-xl shadow-card">
-            <div className="text-crypto-purple text-4xl mb-4">🔔</div>
+            <div className="text-crypto-purple text-4xl mb-4"><FaBell /></div>
             <h3 className="text-xl font-bold mb-2">Price Alerts</h3>
             <p className="text-gray-300">
               Set custom price alerts and get notified when cryptocurrencies hit your target prices.

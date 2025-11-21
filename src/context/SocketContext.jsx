@@ -28,17 +28,17 @@ export const SocketProvider = ({ children }) => {
     });
 
     newSocket.on('connect', () => {
-      console.log('✅ WebSocket connected:', newSocket.id);
+      console.log('[WebSocket] Connected:', newSocket.id);
       setIsConnected(true);
     });
 
     newSocket.on('disconnect', (reason) => {
-      console.log('❌ WebSocket disconnected:', reason);
+      console.log('[WebSocket] Disconnected:', reason);
       setIsConnected(false);
     });
 
     newSocket.on('connect_error', (error) => {
-      console.warn('⚠️ WebSocket connection error:', error.message);
+      console.warn('[WebSocket] Connection error:', error.message);
       setIsConnected(false);
     });
 
@@ -53,7 +53,7 @@ export const SocketProvider = ({ children }) => {
     });
 
     newSocket.on('market_update', (data) => {
-      console.log('📊 Market update received:', data);
+      console.log('[Market] Price update received:', data);
     });
 
     setSocket(newSocket);

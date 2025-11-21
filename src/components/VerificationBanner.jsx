@@ -33,7 +33,7 @@ const VerificationBanner = () => {
         }
       );
 
-      setMessage('✅ Verification email sent! Check your inbox.');
+      setMessage('Verification email sent! Check your inbox.');
       
       // Clear message after 5 seconds
       setTimeout(() => {
@@ -41,7 +41,7 @@ const VerificationBanner = () => {
       }, 5000);
     } catch (error) {
       setMessage(
-        '❌ ' + (error.response?.data?.message || 'Failed to send verification email')
+        'Error: ' + (error.response?.data?.message || 'Failed to send verification email')
       );
     } finally {
       setSending(false);

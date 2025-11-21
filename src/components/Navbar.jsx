@@ -50,6 +50,9 @@ const Navbar = () => {
               <Link to="/transactions" className="text-white hover:text-crypto-purple transition-colors">
                 Transactions
               </Link>
+              <Link to="/analytics" className="text-white hover:text-crypto-purple transition-colors">
+                Analytics
+              </Link>
               <div className="relative">
                 <button 
                   className="flex items-center gap-2 text-white hover:text-crypto-purple transition-colors bg-gray-700 px-3 py-2 rounded-lg"
@@ -157,6 +160,13 @@ const Navbar = () => {
                   onClick={() => setIsOpen(false)}
                 >
                   Transactions
+                </Link>
+                <Link 
+                  to="/analytics" 
+                  className="text-white hover:text-crypto-purple transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Analytics
                 </Link>
                 <button
                   onClick={() => {

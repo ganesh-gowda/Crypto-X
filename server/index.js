@@ -12,6 +12,8 @@ import alertRoutes from './routes/alerts.js';
 import transactionRoutes from './routes/transactions.js';
 import emailVerificationRoutes from './routes/emailVerification.js';
 import twoFactorRoutes from './routes/twoFactor.js';
+import searchRoutes from './routes/search.js';
+import reportsRoutes from './routes/reports.js';
 
 // Get directory name for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -46,6 +48,8 @@ app.use('/api/alerts', alertRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/verify', emailVerificationRoutes);
 app.use('/api/2fa', twoFactorRoutes);
+app.use('/api/search', searchRoutes);
+app.use('/api/reports', reportsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

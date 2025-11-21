@@ -9,6 +9,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Portfolio from './pages/Portfolio';
 import TransactionHistory from './pages/TransactionHistory';
+import Analytics from './pages/Analytics';
 import PrivateRoute from './components/PrivateRoute';
 import News from './pages/News';
 
@@ -103,6 +104,14 @@ function App() {
                 element={
                   <PrivateRoute>
                     <TransactionHistory />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="/analytics" 
+                element={
+                  <PrivateRoute>
+                    <Analytics />
                   </PrivateRoute>
                 } 
               />

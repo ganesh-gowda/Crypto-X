@@ -65,6 +65,31 @@ const userSchema = new mongoose.Schema(
           type: Boolean,
           default: false,
         },
+        triggeredAt: Date,
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+    watchlist: [
+      {
+        coinId: String,
+        coinName: String,
+        coinSymbol: String,
+        addedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+    savedFilters: [
+      {
+        name: String,
+        filters: {
+          type: Object,
+          default: {},
+        },
         createdAt: {
           type: Date,
           default: Date.now,

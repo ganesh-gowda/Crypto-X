@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AppContext } from "../App";
 import Navbar from '../components/Navbar';
+import ExportReports from '../components/ExportReports';
 import { getAllCurrencies, getCoinHistory } from "../context/coinContext";
 import { FaPlus, FaTrash, FaEdit } from 'react-icons/fa';
 import PriceAlerts from '../components/PriceAlerts';
@@ -463,6 +464,11 @@ const Portfolio = () => {
                   );
                 })}
               </div>
+            </div>
+            
+            {/* Export Reports Section */}
+            <div className="mt-8">
+              <ExportReports />
             </div>
             
             {/* Price Alerts Section */}

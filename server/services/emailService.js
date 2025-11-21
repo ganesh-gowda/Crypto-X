@@ -56,7 +56,7 @@ export const sendVerificationEmail = async (email, username, token) => {
       <body>
         <div class="container">
           <div class="header">
-            <h1>🚀 Welcome to CryptoX!</h1>
+            <h1>Welcome to CryptoX!</h1>
           </div>
           <div class="content">
             <h2>Hi ${username},</h2>
@@ -80,10 +80,10 @@ export const sendVerificationEmail = async (email, username, token) => {
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Verification email sent:', info.messageId);
+    console.log('[Email] Verification email sent:', info.messageId);
     return info;
   } catch (error) {
-    console.error('❌ Error sending verification email:', error);
+    console.error('[Email] Error sending verification email:', error);
     throw error;
   }
 };
@@ -110,13 +110,13 @@ export const send2FAEnabledEmail = async (email, username) => {
       <body>
         <div class="container">
           <div class="header">
-            <h1>🔐 Security Alert</h1>
+            <h1>Security Alert</h1>
           </div>
           <div class="content">
             <h2>Hi ${username},</h2>
             <p>Two-factor authentication has been successfully enabled on your CryptoX account.</p>
             <div class="alert">
-              <strong>⚠️ Important:</strong> Make sure to save your backup codes in a secure location. You'll need them if you lose access to your authenticator app.
+              <strong>Important:</strong> Make sure to save your backup codes in a secure location. You'll need them if you lose access to your authenticator app.
             </div>
             <p>If you didn't enable 2FA, please contact support immediately and change your password.</p>
           </div>
@@ -132,10 +132,10 @@ export const send2FAEnabledEmail = async (email, username) => {
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log('✅ 2FA enabled email sent:', info.messageId);
+    console.log('[Email] 2FA enabled email sent:', info.messageId);
     return info;
   } catch (error) {
-    console.error('❌ Error sending 2FA email:', error);
+    console.error('[Email] Error sending 2FA email:', error);
     throw error;
   }
 };
@@ -187,10 +187,10 @@ export const sendPasswordResetEmail = async (email, username, token) => {
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Password reset email sent:', info.messageId);
+    console.log('[Email] Password reset email sent:', info.messageId);
     return info;
   } catch (error) {
-    console.error('❌ Error sending password reset email:', error);
+    console.error('[Email] Error sending password reset email:', error);
     throw error;
   }
 };
