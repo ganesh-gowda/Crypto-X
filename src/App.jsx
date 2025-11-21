@@ -1,12 +1,14 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import AuthProvider from './context/AuthContext';
+import { SocketProvider } from './context/SocketContext';
 import Home from './pages/Home';
 import Market from './pages/Market';
 import CoinDetail from './pages/CoinDetail';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Portfolio from './pages/Portfolio';
+import TransactionHistory from './pages/TransactionHistory';
 import PrivateRoute from './components/PrivateRoute';
 import News from './pages/News';
 
@@ -80,22 +82,32 @@ function App() {
     <AppContext.Provider value={contextValue}>
       <Router>
         <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/market" element={<Market />} />
-            <Route path="/coin/:coinId" element={<CoinDetail />} />
-            <Route path="/news" element={<News />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route 
-              path="/portfolio" 
-              element={
-                <PrivateRoute>
-                  <Portfolio />
-                </PrivateRoute>
-              } 
-            />
-          </Routes>
+          <SocketProvider>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/market" element={<Market />} />
+              <Route path="/coin/:coinId" element={<CoinDetail />} />
+              <Route path="/news" element={<News />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route 
+                path="/portfolio" 
+                element={
+                  <PrivateRoute>
+                    <Portfolio />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="/transactions" 
+                element={
+                  <PrivateRoute>
+                    <TransactionHistory />
+                  </PrivateRoute>
+                } 
+              />
+            </Routes>
+          </SocketProvider>
         </AuthProvider>
       </Router>
     </AppContext.Provider>

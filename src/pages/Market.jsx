@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { AppContext } from '../App';
 import axios from 'axios';
+import { SkeletonTable } from '../components/Skeleton';
 
 const Market = () => {
   const [page, setPage] = useState(1);
@@ -41,21 +42,41 @@ const Market = () => {
             sparkline: false,
             price_change_percentage: '24h'
           },
-          timeout: 10000 // 10 second timeout
+          timeout: 15000, // 15 second timeout
+          headers: {
+            'Accept': 'application/json',
+          }
         });
         
-        setCoins(response.data);
-        setRetryCount(0); // Reset retry count on success
+        if (response.data && response.data.length > 0) {
+          setCoins(response.data);
+          setRetryCount(0); // Reset retry count on success
+        } else {
+          throw new Error('No data received from API');
+        }
       } catch (err) {
         console.error('Error fetching market data:', err);
+        
+        // More specific error messages
+        let errorMessage = 'Network Error: Unable to fetch market data. ';
+        
+        if (err.code === 'ECONNABORTED') {
+          errorMessage += 'Request timeout. Please check your internet connection.';
+        } else if (err.response?.status === 429) {
+          errorMessage += 'Too many requests. Please wait a moment and try again.';
+        } else if (err.response?.status >= 500) {
+          errorMessage += 'CoinGecko API is currently unavailable. Please try again later.';
+        } else {
+          errorMessage += 'Please check your internet connection and try again.';
+        }
         
         if (retryCount < 3) {
           // Retry up to 3 times with increasing delay
           setRetryCount(prev => prev + 1);
-          setError(`Network error. Retrying... (${retryCount + 1}/3)`);
+          setError(`${errorMessage} Retrying... (${retryCount + 1}/3)`);
           setTimeout(() => fetchCoins(), 2000 * (retryCount + 1));
         } else {
-          setError('Network Error: Unable to fetch market data. The CoinGecko API may be experiencing high traffic or rate limiting. Please try again later.');
+          setError(errorMessage);
         }
       } finally {
         if (retryCount >= 3 || !error) {
@@ -94,9 +115,11 @@ const Market = () => {
         )}
         
         {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-crypto-purple"></div>
-          </div>
+          <SkeletonTable 
+            rows={20} 
+            columns={7}
+            headers={['#', 'Coin', 'Price', '24h Change', '24h Volume', 'Market Cap', 'Actions']}
+          />
         ) : (
           <>
             {coins && coins.length > 0 ? (

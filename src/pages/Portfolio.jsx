@@ -1,27 +1,50 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AppContext } from "../App";
 import Navbar from '../components/Navbar';
-import { getAllCurrencies } from "../context/coinContext";
+import { getAllCurrencies, getCoinHistory } from "../context/coinContext";
 import { FaPlus, FaTrash, FaEdit } from 'react-icons/fa';
 import PriceAlerts from '../components/PriceAlerts';
+import { portfolioAPI } from '../services/userApi';
+import { transactionAPI } from '../services/transactionApi';
+import { useSocket } from '../context/SocketContext';
+import { SkeletonStatCard, SkeletonTable } from '../components/Skeleton';
 
 const Portfolio = () => {
   const { vsCurrency, theme } = useContext(AppContext);
+  const { isConnected, priceUpdates, subscribeToCoin, unsubscribeFromCoin } = useSocket();
   const [coins, setCoins] = useState([]);
-  const [portfolio, setPortfolio] = useState(() => {
-    const savedPortfolio = localStorage.getItem('cryptoXPortfolio');
-    return savedPortfolio ? JSON.parse(savedPortfolio) : [];
-  });
+  const [portfolio, setPortfolio] = useState([]);
   const [totalValue, setTotalValue] = useState(0);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedCoin, setSelectedCoin] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [fetchingPrice, setFetchingPrice] = useState(false);
   const [formData, setFormData] = useState({
     coinId: '',
     amount: '',
     purchasePrice: '',
     purchaseDate: new Date().toISOString().split('T')[0]
   });
+
+  // Fetch portfolio from database
+  useEffect(() => {
+    const fetchPortfolio = async () => {
+      try {
+        setLoading(true);
+        const data = await portfolioAPI.getPortfolio();
+        setPortfolio(data);
+      } catch (error) {
+        console.error("Error fetching portfolio:", error);
+        setError("Failed to load portfolio");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPortfolio();
+  }, []);
 
   useEffect(() => {
     const fetchCoins = async () => {
@@ -37,12 +60,43 @@ const Portfolio = () => {
   }, [vsCurrency]);
 
   useEffect(() => {
-    localStorage.setItem('cryptoXPortfolio', JSON.stringify(portfolio));
-    
     if (coins.length > 0 && portfolio.length > 0) {
       calculateTotalValue();
     }
-  }, [portfolio, coins, vsCurrency]);
+  }, [portfolio, coins, vsCurrency, priceUpdates]);
+
+  // Subscribe to coin price updates
+  useEffect(() => {
+    if (isConnected && portfolio.length > 0) {
+      portfolio.forEach(item => {
+        subscribeToCoin(item.coinId);
+      });
+      
+      return () => {
+        portfolio.forEach(item => {
+          unsubscribeFromCoin(item.coinId);
+        });
+      };
+    }
+  }, [isConnected, portfolio, subscribeToCoin, unsubscribeFromCoin]);
+
+  // Update coin prices with WebSocket data
+  useEffect(() => {
+    if (Object.keys(priceUpdates).length > 0 && coins.length > 0) {
+      setCoins(prevCoins => 
+        prevCoins.map(coin => {
+          const update = priceUpdates[coin.id];
+          if (update) {
+            return {
+              ...coin,
+              current_price: coin.current_price * (1 + update.change / 100)
+            };
+          }
+          return coin;
+        })
+      );
+    }
+  }, [priceUpdates]);
 
   const calculateTotalValue = () => {
     let total = 0;
@@ -78,27 +132,79 @@ const Portfolio = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleDeleteCoin = (coinId) => {
-    setPortfolio(portfolio.filter(item => item.id !== coinId));
+  const handleDeleteCoin = async (itemId) => {
+    try {
+      const item = portfolio.find(p => p._id === itemId);
+      await portfolioAPI.deletePortfolioItem(itemId);
+      
+      // Record transaction for deletion
+      if (item) {
+        const coin = coins.find(c => c.id === item.coinId);
+        if (coin) {
+          await transactionAPI.create({
+            type: 'sell',
+            coinId: item.coinId,
+            coinName: coin.name,
+            coinSymbol: coin.symbol,
+            amount: item.amount,
+            price: coin.current_price,
+            notes: 'Removed from portfolio'
+          });
+        }
+      }
+      
+      setPortfolio(portfolio.filter(item => item._id !== itemId));
+    } catch (error) {
+      console.error("Error deleting portfolio item:", error);
+      alert("Failed to delete item");
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (isEditModalOpen && selectedCoin) {
-      setPortfolio(portfolio.map(item => 
-        item.id === selectedCoin.id ? { ...formData, id: selectedCoin.id } : item
-      ));
-      setIsEditModalOpen(false);
-    } else {
-      const newItem = {
-        ...formData,
-        id: Date.now().toString(),
-        amount: parseFloat(formData.amount),
-        purchasePrice: parseFloat(formData.purchasePrice)
-      };
-      setPortfolio([...portfolio, newItem]);
-      setIsAddModalOpen(false);
+    try {
+      const coin = coins.find(c => c.id === formData.coinId);
+      
+      if (isEditModalOpen && selectedCoin) {
+        // Record transaction for edit
+        const amountDiff = parseFloat(formData.amount) - selectedCoin.amount;
+        if (amountDiff !== 0 && coin) {
+          await transactionAPI.create({
+            type: amountDiff > 0 ? 'buy' : 'sell',
+            coinId: formData.coinId,
+            coinName: coin.name,
+            coinSymbol: coin.symbol,
+            amount: Math.abs(amountDiff),
+            price: parseFloat(formData.purchasePrice),
+            notes: 'Portfolio adjustment'
+          });
+        }
+        
+        const updatedPortfolio = await portfolioAPI.updatePortfolioItem(selectedCoin._id, formData);
+        setPortfolio(updatedPortfolio);
+        setIsEditModalOpen(false);
+      } else {
+        // Record transaction for new addition
+        if (coin) {
+          await transactionAPI.create({
+            type: 'buy',
+            coinId: formData.coinId,
+            coinName: coin.name,
+            coinSymbol: coin.symbol,
+            amount: parseFloat(formData.amount),
+            price: parseFloat(formData.purchasePrice),
+            notes: 'Added to portfolio'
+          });
+        }
+        
+        const updatedPortfolio = await portfolioAPI.addToPortfolio(formData);
+        setPortfolio(updatedPortfolio);
+        setIsAddModalOpen(false);
+      }
+    } catch (error) {
+      console.error("Error saving portfolio item:", error);
+      alert("Failed to save portfolio item");
     }
   };
 
@@ -107,6 +213,72 @@ const Portfolio = () => {
     if (!coin || !item.purchasePrice) return 0;
     
     return ((coin.current_price - item.purchasePrice) / item.purchasePrice) * 100;
+  };
+
+  const getDollarProfitLoss = (item) => {
+    const coin = coins.find(c => c.id === item.coinId);
+    if (!coin || !item.purchasePrice || !item.amount) return 0;
+    
+    const purchaseValue = item.purchasePrice * item.amount;
+    const currentValue = coin.current_price * item.amount;
+    return currentValue - purchaseValue;
+  };
+
+  // Fetch historical price when date changes
+  const fetchHistoricalPrice = async (coinId, date) => {
+    if (!coinId || !date) return;
+    
+    try {
+      setFetchingPrice(true);
+      const selectedDate = new Date(date);
+      const today = new Date();
+      const diffTime = Math.abs(today - selectedDate);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      // Get historical data
+      const historyData = await getCoinHistory(coinId, vsCurrency, diffDays + 1);
+      
+      if (historyData && historyData.prices && historyData.prices.length > 0) {
+        // Find the closest price to the selected date
+        const targetTime = selectedDate.getTime();
+        let closestPrice = historyData.prices[0][1];
+        let minDiff = Math.abs(historyData.prices[0][0] - targetTime);
+        
+        for (const [timestamp, price] of historyData.prices) {
+          const diff = Math.abs(timestamp - targetTime);
+          if (diff < minDiff) {
+            minDiff = diff;
+            closestPrice = price;
+          }
+        }
+        
+        setFormData(prev => ({
+          ...prev,
+          purchasePrice: closestPrice.toFixed(2)
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching historical price:', error);
+      // Keep the manual input option available
+    } finally {
+      setFetchingPrice(false);
+    }
+  };
+
+  // Handle date change
+  const handleDateChange = async (date) => {
+    setFormData(prev => ({ ...prev, purchaseDate: date }));
+    if (formData.coinId && date) {
+      await fetchHistoricalPrice(formData.coinId, date);
+    }
+  };
+
+  // Handle coin change
+  const handleCoinChange = async (coinId) => {
+    setFormData(prev => ({ ...prev, coinId }));
+    if (coinId && formData.purchaseDate) {
+      await fetchHistoricalPrice(coinId, formData.purchaseDate);
+    }
   };
 
   return (
@@ -123,7 +295,16 @@ const Portfolio = () => {
           </button>
         </div>
 
-        {portfolio.length === 0 ? (
+        {loading ? (
+          <>
+            <SkeletonStatCard className="mb-8" />
+            <SkeletonTable 
+              rows={5} 
+              columns={6}
+              headers={['Coin', 'Holdings', 'Avg Buy Price', 'Current Price', 'Profit/Loss', 'Actions']}
+            />
+          </>
+        ) : portfolio.length === 0 ? (
           <div className="bg-gray-800 rounded-xl p-8 text-center">
             <h2 className="text-2xl mb-4">Your portfolio is empty</h2>
             <p className="text-gray-400 mb-6">Start tracking your crypto investments by adding coins to your portfolio.</p>
@@ -158,10 +339,11 @@ const Portfolio = () => {
                     {portfolio.map(item => {
                       const coin = coins.find(c => c.id === item.coinId);
                       const percentChange = getPercentageChange(item);
+                      const dollarProfitLoss = getDollarProfitLoss(item);
                       const profitLossColor = percentChange >= 0 ? 'text-crypto-accent' : 'text-crypto-warning';
                       
                       return coin ? (
-                        <tr key={item.id}>
+                        <tr key={item._id}>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <img src={coin.image} alt={coin.name} className="w-8 h-8 mr-3" />
@@ -182,7 +364,12 @@ const Portfolio = () => {
                             ${coin.current_price.toLocaleString()}
                           </td>
                           <td className={`px-6 py-4 whitespace-nowrap ${profitLossColor}`}>
-                            {percentChange.toFixed(2)}%
+                            <div className="font-bold">
+                              {dollarProfitLoss >= 0 ? '+' : ''}${Math.abs(dollarProfitLoss).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </div>
+                            <div className="text-sm">
+                              {percentChange >= 0 ? '+' : ''}{percentChange.toFixed(2)}%
+                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <button 
@@ -192,7 +379,7 @@ const Portfolio = () => {
                               <FaEdit size={18} />
                             </button>
                             <button 
-                              onClick={() => handleDeleteCoin(item.id)}
+                              onClick={() => handleDeleteCoin(item._id)}
                               className="text-red-400 hover:text-red-300"
                             >
                               <FaTrash size={18} />
@@ -263,7 +450,7 @@ const Portfolio = () => {
                   
                   return (
                     <div 
-                      key={item.id} 
+                      key={item._id} 
                       className="flex items-center bg-gray-700 rounded-full px-3 py-1"
                       style={{ 
                         background: `linear-gradient(90deg, rgba(136, 106, 255, 0.5) ${percentage}%, rgba(64, 64, 64, 0.5) ${percentage}%)` 
@@ -294,15 +481,31 @@ const Portfolio = () => {
                 <label className="block text-gray-300 mb-2">Select Coin</label>
                 <select 
                   value={formData.coinId}
-                  onChange={(e) => setFormData({...formData, coinId: e.target.value})}
+                  onChange={(e) => handleCoinChange(e.target.value)}
                   className="w-full bg-gray-700 text-white rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-crypto-purple"
                   required
+                  disabled={fetchingPrice}
                 >
                   <option value="">Select a coin</option>
                   {coins.map(coin => (
                     <option key={coin.id} value={coin.id}>{coin.name} ({coin.symbol.toUpperCase()})</option>
                   ))}
                 </select>
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-300 mb-2">Purchase Date</label>
+                <input 
+                  type="date"
+                  value={formData.purchaseDate}
+                  onChange={(e) => handleDateChange(e.target.value)}
+                  max={new Date().toISOString().split('T')[0]}
+                  className="w-full bg-gray-700 text-white rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-crypto-purple"
+                  required
+                  disabled={fetchingPrice}
+                />
+                {fetchingPrice && (
+                  <p className="text-sm text-crypto-purple mt-1">Fetching price for selected date...</p>
+                )}
               </div>
               <div className="mb-4">
                 <label className="block text-gray-300 mb-2">Amount</label>
@@ -314,10 +517,11 @@ const Portfolio = () => {
                   placeholder="0.00"
                   step="any"
                   required
+                  disabled={fetchingPrice}
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-gray-300 mb-2">Purchase Price (per coin)</label>
+                <label className="block text-gray-300 mb-2">Purchase Price (per coin) $</label>
                 <input 
                   type="number"
                   value={formData.purchasePrice}
@@ -326,17 +530,9 @@ const Portfolio = () => {
                   placeholder="0.00"
                   step="any"
                   required
+                  disabled={fetchingPrice}
                 />
-              </div>
-              <div className="mb-6">
-                <label className="block text-gray-300 mb-2">Purchase Date</label>
-                <input 
-                  type="date"
-                  value={formData.purchaseDate}
-                  onChange={(e) => setFormData({...formData, purchaseDate: e.target.value})}
-                  className="w-full bg-gray-700 text-white rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-crypto-purple"
-                  required
-                />
+                <p className="text-xs text-gray-400 mt-1">Auto-filled based on selected date. You can edit manually.</p>
               </div>
               <div className="flex justify-end space-x-3">
                 <button 
@@ -379,6 +575,21 @@ const Portfolio = () => {
                 </select>
               </div>
               <div className="mb-4">
+                <label className="block text-gray-300 mb-2">Purchase Date</label>
+                <input 
+                  type="date"
+                  value={formData.purchaseDate}
+                  onChange={(e) => handleDateChange(e.target.value)}
+                  max={new Date().toISOString().split('T')[0]}
+                  className="w-full bg-gray-700 text-white rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-crypto-purple"
+                  required
+                  disabled={fetchingPrice}
+                />
+                {fetchingPrice && (
+                  <p className="text-sm text-crypto-purple mt-1">Fetching price for selected date...</p>
+                )}
+              </div>
+              <div className="mb-4">
                 <label className="block text-gray-300 mb-2">Amount</label>
                 <input 
                   type="number"
@@ -388,10 +599,11 @@ const Portfolio = () => {
                   placeholder="0.00"
                   step="any"
                   required
+                  disabled={fetchingPrice}
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-gray-300 mb-2">Purchase Price (per coin)</label>
+                <label className="block text-gray-300 mb-2">Purchase Price (per coin) $</label>
                 <input 
                   type="number"
                   value={formData.purchasePrice}
@@ -400,17 +612,9 @@ const Portfolio = () => {
                   placeholder="0.00"
                   step="any"
                   required
+                  disabled={fetchingPrice}
                 />
-              </div>
-              <div className="mb-6">
-                <label className="block text-gray-300 mb-2">Purchase Date</label>
-                <input 
-                  type="date"
-                  value={formData.purchaseDate}
-                  onChange={(e) => setFormData({...formData, purchaseDate: e.target.value})}
-                  className="w-full bg-gray-700 text-white rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-crypto-purple"
-                  required
-                />
+                <p className="text-xs text-gray-400 mt-1">Auto-filled based on selected date. You can edit manually.</p>
               </div>
               <div className="flex justify-end space-x-3">
                 <button 

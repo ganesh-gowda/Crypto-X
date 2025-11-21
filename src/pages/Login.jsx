@@ -26,7 +26,7 @@ const Login = () => {
       await login(email, password);
       navigate('/portfolio');
     } catch (error) {
-      setError('Failed to log in. Please check your credentials.');
+      setError(error.message || 'Failed to log in. Please check your credentials.');
       console.error(error);
     } finally {
       setLoading(false);

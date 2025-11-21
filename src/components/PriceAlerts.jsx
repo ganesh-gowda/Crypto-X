@@ -2,20 +2,36 @@ import React, { useState, useEffect, useContext } from 'react';
 import { AppContext } from "../App";
 import { getAllCurrencies } from "../context/coinContext";
 import { FaBell, FaTrash, FaPlus } from 'react-icons/fa';
+import { alertsAPI } from '../services/userApi';
 
 const PriceAlerts = () => {
   const { vsCurrency } = useContext(AppContext);
   const [coins, setCoins] = useState([]);
-  const [alerts, setAlerts] = useState(() => {
-    const savedAlerts = localStorage.getItem('cryptoXAlerts');
-    return savedAlerts ? JSON.parse(savedAlerts) : [];
-  });
+  const [alerts, setAlerts] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     coinId: '',
     targetPrice: '',
     condition: 'above', // 'above' or 'below'
   });
+
+  // Fetch alerts from database
+  useEffect(() => {
+    const fetchAlerts = async () => {
+      try {
+        setLoading(true);
+        const data = await alertsAPI.getAlerts();
+        setAlerts(data);
+      } catch (error) {
+        console.error("Error fetching alerts:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAlerts();
+  }, []);
 
   useEffect(() => {
     const fetchCoins = async () => {
@@ -31,41 +47,45 @@ const PriceAlerts = () => {
   }, [vsCurrency]);
 
   useEffect(() => {
-    localStorage.setItem('cryptoXAlerts', JSON.stringify(alerts));
-    
     // Check for triggered alerts
     if (coins.length > 0 && alerts.length > 0) {
       checkAlerts();
     }
   }, [alerts, coins]);
 
-  const checkAlerts = () => {
-    alerts.forEach(alert => {
+  const checkAlerts = async () => {
+    for (const alert of alerts) {
       const coin = coins.find(c => c.id === alert.coinId);
-      if (!coin) return;
+      if (!coin) continue;
       
       const isTriggered = 
         (alert.condition === 'above' && coin.current_price >= alert.targetPrice) ||
         (alert.condition === 'below' && coin.current_price <= alert.targetPrice);
       
       if (isTriggered && !alert.triggered) {
-        // In a real app, you would send a notification here
-        // For now, we'll just mark it as triggered
-        setAlerts(prevAlerts => 
-          prevAlerts.map(a => 
-            a.id === alert.id ? { ...a, triggered: true } : a
-          )
-        );
-        
-        // Show browser notification if supported
-        if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification(`${coin.name} Price Alert`, {
-            body: `${coin.name} is now ${alert.condition} $${alert.targetPrice}`,
-            icon: coin.image
-          });
+        try {
+          // Update alert as triggered in database
+          await alertsAPI.updateAlert(alert._id, { triggered: true });
+          
+          // Update local state
+          setAlerts(prevAlerts => 
+            prevAlerts.map(a => 
+              a._id === alert._id ? { ...a, triggered: true } : a
+            )
+          );
+          
+          // Show browser notification if supported
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification(`${coin.name} Price Alert`, {
+              body: `${coin.name} is now ${alert.condition} $${alert.targetPrice}`,
+              icon: coin.image
+            });
+          }
+        } catch (error) {
+          console.error("Error updating alert:", error);
         }
       }
-    });
+    }
   };
 
   const handleAddAlert = () => {
@@ -77,23 +97,27 @@ const PriceAlerts = () => {
     setIsModalOpen(true);
   };
 
-  const handleDeleteAlert = (alertId) => {
-    setAlerts(alerts.filter(alert => alert.id !== alertId));
+  const handleDeleteAlert = async (alertId) => {
+    try {
+      await alertsAPI.deleteAlert(alertId);
+      setAlerts(alerts.filter(alert => alert._id !== alertId));
+    } catch (error) {
+      console.error("Error deleting alert:", error);
+      alert("Failed to delete alert");
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    const newAlert = {
-      ...formData,
-      id: Date.now().toString(),
-      targetPrice: parseFloat(formData.targetPrice),
-      triggered: false,
-      createdAt: new Date().toISOString(),
-    };
-    
-    setAlerts([...alerts, newAlert]);
-    setIsModalOpen(false);
+    try {
+      const updatedAlerts = await alertsAPI.addAlert(formData);
+      setAlerts(updatedAlerts);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Error adding alert:", error);
+      alert("Failed to add alert");
+    }
   };
 
   // Request notification permission
@@ -153,7 +177,7 @@ const PriceAlerts = () => {
                     (alert.condition === 'below' && coin.current_price <= alert.targetPrice);
                   
                   return (
-                    <tr key={alert.id}>
+                    <tr key={alert._id}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <img src={coin.image} alt={coin.name} className="w-8 h-8 mr-3" />
@@ -185,7 +209,7 @@ const PriceAlerts = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <button 
-                          onClick={() => handleDeleteAlert(alert.id)}
+                          onClick={() => handleDeleteAlert(alert._id)}
                           className="text-red-400 hover:text-red-300"
                         >
                           <FaTrash size={18} />

@@ -3,10 +3,13 @@ import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { AppContext } from "../App";
 import { useCryptoData } from '../hooks/useCryptoData';
+import { useAuth } from '../context/AuthContext';
+import { SkeletonTable } from '../components/Skeleton';
 
 const Home = () =>
    {
   const { vsCurrency } = useContext(AppContext);
+  const { currentUser } = useAuth();
   const { data: trendingCoins, loading: trendingLoading } = useCryptoData('/coins/markets', {
     per_page: 10,
     page: 1,
@@ -44,12 +47,22 @@ const Home = () =>
             >
               Explore Market
             </Link>
-            <Link
-              to="/signup"
-              className="bg-transparent border-2 border-crypto-purple hover:bg-crypto-purple hover:bg-opacity-20 text-white px-8 py-3 rounded-lg text-lg font-semibold transition-colors"
-            >
-              Create Account
-            </Link>
+            {!currentUser && (
+              <Link
+                to="/signup"
+                className="bg-transparent border-2 border-crypto-purple hover:bg-crypto-purple hover:bg-opacity-20 text-white px-8 py-3 rounded-lg text-lg font-semibold transition-colors"
+              >
+                Create Account
+              </Link>
+            )}
+            {currentUser && (
+              <Link
+                to="/portfolio"
+                className="bg-transparent border-2 border-crypto-purple hover:bg-crypto-purple hover:bg-opacity-20 text-white px-8 py-3 rounded-lg text-lg font-semibold transition-colors"
+              >
+                View Portfolio
+              </Link>
+            )}
           </div>
         </div>
 
@@ -58,9 +71,11 @@ const Home = () =>
           <h2 className="text-2xl font-days font-bold mb-6">Trending Cryptocurrencies</h2>
           
           {trendingLoading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-crypto-purple"></div>
-            </div>
+            <SkeletonTable 
+              rows={10} 
+              columns={4}
+              headers={['Coin', 'Price', '24h Change', 'Market Cap']}
+            />
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full bg-gray-800 rounded-xl overflow-hidden">

@@ -1,0 +1,16 @@
+{
+  "name": "cryptox-server",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "CryptoX Backend API",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "nodemailer": "^7.0.10",
+    "qrcode": "^1.5.4",
+    "speakeasy": "^2.0.0"
+  }
+}

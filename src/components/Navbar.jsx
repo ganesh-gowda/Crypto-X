@@ -47,14 +47,17 @@ const Navbar = () => {
               <Link to="/portfolio" className="text-white hover:text-crypto-purple transition-colors">
                 Portfolio
               </Link>
+              <Link to="/transactions" className="text-white hover:text-crypto-purple transition-colors">
+                Transactions
+              </Link>
               <div className="relative">
                 <button 
-                  className="flex items-center text-white hover:text-crypto-purple transition-colors"
+                  className="flex items-center gap-2 text-white hover:text-crypto-purple transition-colors bg-gray-700 px-3 py-2 rounded-lg"
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   onMouseEnter={() => setDropdownOpen(true)}
                 >
-                  <FaUser className="mr-2" />
-                  {currentUser.displayName || 'User'}
+                  <FaUser />
+                  <span className="font-medium">{currentUser.displayName || currentUser.username || currentUser.email?.split('@')[0] || 'User'}</span>
                 </button>
                 {dropdownOpen && (
                   <div 
@@ -137,12 +140,23 @@ const Navbar = () => {
             
             {currentUser ? (
               <>
+                <div className="flex items-center gap-2 text-crypto-purple font-semibold pb-2 border-b border-gray-700">
+                  <FaUser />
+                  <span>{currentUser.displayName || currentUser.username || currentUser.email?.split('@')[0] || 'User'}</span>
+                </div>
                 <Link 
                   to="/portfolio" 
                   className="text-white hover:text-crypto-purple transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
                   Portfolio
+                </Link>
+                <Link 
+                  to="/transactions" 
+                  className="text-white hover:text-crypto-purple transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Transactions
                 </Link>
                 <button
                   onClick={() => {

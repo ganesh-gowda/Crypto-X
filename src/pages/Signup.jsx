@@ -21,6 +21,23 @@ const Signup = () => {
       setError('Please fill in all fields');
       return;
     }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    // Check for common email domains
+    const emailDomain = email.split('@')[1]?.toLowerCase();
+    const commonDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com'];
+    const hasValidDomain = emailDomain && emailDomain.includes('.');
+    
+    if (!hasValidDomain) {
+      setError('Please use a valid email address');
+      return;
+    }
     
     if (password !== confirmPassword) {
       setError('Passwords do not match');
@@ -40,31 +57,12 @@ const Signup = () => {
       const user = await signup(email, password, username);
       console.log("User created successfully:", user);
       
-      // Add a small delay before navigation to ensure Firestore has time to update
-      setTimeout(() => {
-        navigate('/portfolio');
-      }, 1000);
+      // Navigate to portfolio
+      navigate('/portfolio');
       
     } catch (error) {
       console.error("Error in signup:", error);
-      
-      // Handle specific Firebase auth errors
-      switch(error.code) {
-        case 'auth/email-already-in-use':
-          setError('Email is already in use');
-          break;
-        case 'auth/invalid-email':
-          setError('Invalid email address');
-          break;
-        case 'auth/weak-password':
-          setError('Password is too weak');
-          break;
-        case 'auth/network-request-failed':
-          setError('Network error. Please check your connection');
-          break;
-        default:
-          setError(`Failed to create an account: ${error.message}`);
-      }
+      setError(error.message || 'Failed to create an account');
     } finally {
       setLoading(false);
     }
