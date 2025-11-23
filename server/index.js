@@ -24,11 +24,19 @@ dotenv.config({ path: join(__dirname, '..', '.env') });
 
 const app = express();
 const httpServer = createServer(app);
+
+// Configure CORS for production and development
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  process.env.FRONTEND_URL // Vercel URL
+].filter(Boolean);
+
 const io = new Server(httpServer, {
   cors: {
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
-    credentials: false
+    credentials: true
   }
 });
 
@@ -38,7 +46,10 @@ const PORT = process.env.PORT || 5000;
 connectDB();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes

@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { API_ENDPOINTS } from '../config/apiConfig';
 
-const API_URL = 'http://localhost:5000/api/transactions';
+const API_URL = API_ENDPOINTS.TRANSACTIONS;
 
 const getAuthHeader = () => {
   const token = localStorage.getItem('token');

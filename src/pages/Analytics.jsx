@@ -17,6 +17,7 @@ import {
 } from 'chart.js';
 import axios from 'axios';
 import { FaChartLine, FaChartPie, FaArrowUp, FaArrowDown, FaTrophy, FaDownload } from 'react-icons/fa';
+import { API_ENDPOINTS } from '../config/apiConfig';
 
 // Register ChartJS components
 ChartJS.register(
@@ -46,7 +47,7 @@ const Analytics = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/portfolio/analytics', {
+      const response = await axios.get(API_ENDPOINTS.PORTFOLIO_ANALYTICS, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAnalytics(response.data.analytics);
