@@ -218,10 +218,12 @@ const Analytics = () => {
             {/* Total P/L */}
             <div className={`bg-gradient-to-br ${analytics.totalProfitLoss >= 0 ? 'from-green-900 to-green-700' : 'from-red-900 to-red-700'} rounded-xl p-6 shadow-lg`}>
               <h3 className="text-gray-200 text-sm mb-2">Total Profit/Loss</h3>
-              <p className="text-3xl font-bold mb-1 flex items-center">
-                {analytics.totalProfitLoss >= 0 ? <FaArrowUp className="mr-2" /> : <FaArrowDown className="mr-2" />}
-                ${Math.abs(analytics.totalProfitLoss).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </p>
+              <div className="flex items-center mb-1">
+                <p className="text-3xl font-bold flex items-center">
+                  {analytics.totalProfitLoss >= 0 ? <FaArrowUp className="mr-2" /> : <FaArrowDown className="mr-2" />}
+                  ${Math.abs(analytics.totalProfitLoss).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              </div>
               <p className="text-sm text-gray-300">{analytics.totalProfitLossPercentage.toFixed(2)}%</p>
             </div>
 
@@ -242,10 +244,12 @@ const Analytics = () => {
 
           {/* Performance Chart */}
           <div className="bg-gray-800 rounded-xl p-6 mb-8 shadow-lg">
-            <h2 className="text-2xl font-bold mb-4 flex items-center">
-              <FaChartLine className="mr-3 text-crypto-purple" />
-              Portfolio Performance (Last 30 Days)
-            </h2>
+            <div className="flex items-center mb-4">
+              <h2 className="text-2xl font-bold flex items-center">
+                <FaChartLine className="mr-3 text-crypto-purple" />
+                Portfolio Performance (Last 30 Days)
+              </h2>
+            </div>
             <div className="h-80">
               <Line data={performanceChartData} options={chartOptions} />
             </div>

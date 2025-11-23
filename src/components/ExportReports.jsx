@@ -335,8 +335,8 @@ const ExportReports = ({ className = '' }) => {
         </div>
       )}
 
-      <div className="mt-6 text-sm text-gray-400 flex items-center gap-2">
-        <FaLightbulb className="text-yellow-400" />
+      <div className="mt-6 text-sm text-gray-400 flex items-center justify-start gap-2">
+        <FaLightbulb className="text-yellow-400 flex-shrink-0" />
         <p><strong>Tip:</strong> Export your data regularly for backup and tax purposes.</p>
       </div>
     </div>
