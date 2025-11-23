@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { API_ENDPOINTS } from '../config/apiConfig';
 
 const TwoFactorModal = ({ userId, onSuccess, onCancel }) => {
   const [code, setCode] = useState('');
@@ -14,7 +15,7 @@ const TwoFactorModal = ({ userId, onSuccess, onCancel }) => {
 
     try {
       // First verify the 2FA code
-      const verifyResponse = await axios.post('http://localhost:5000/api/2fa/verify-login', {
+      const verifyResponse = await axios.post(API_ENDPOINTS.TWO_FACTOR_VERIFY_LOGIN, {
         userId,
         token: code,
         isBackupCode: useBackupCode,
@@ -22,7 +23,7 @@ const TwoFactorModal = ({ userId, onSuccess, onCancel }) => {
 
       if (verifyResponse.data.verified) {
         // Then complete the login
-        const loginResponse = await axios.post('http://localhost:5000/api/auth/login-2fa', {
+        const loginResponse = await axios.post(API_ENDPOINTS.TWO_FACTOR_LOGIN, {
           userId,
           token: code,
           isBackupCode: useBackupCode,

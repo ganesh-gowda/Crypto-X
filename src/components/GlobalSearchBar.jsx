@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FaSearch, FaFilter, FaStar, FaRegStar, FaTimes, FaSave } from 'react-icons/fa';
 import debounce from 'lodash.debounce';
+import { API_ENDPOINTS } from '../config/apiConfig';
 
 const GlobalSearchBar = () => {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ const GlobalSearchBar = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
       
-      const response = await axios.get('http://localhost:5000/api/search/watchlist', {
+      const response = await axios.get(API_ENDPOINTS.SEARCH_WATCHLIST, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setWatchlist(response.data.watchlist);
@@ -53,7 +54,7 @@ const GlobalSearchBar = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
       
-      const response = await axios.get('http://localhost:5000/api/search/filters', {
+      const response = await axios.get(API_ENDPOINTS.SEARCH_FILTERS, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSavedFilters(response.data.filters);
@@ -75,7 +76,7 @@ const GlobalSearchBar = () => {
       });
 
       const response = await axios.get(
-        `http://localhost:5000/api/search/global?${params.toString()}`
+        `${API_ENDPOINTS.SEARCH_GLOBAL}?${params.toString()}`
       );
       setSearchResults(response.data.coins || []);
       setShowResults(true);
@@ -122,11 +123,11 @@ const GlobalSearchBar = () => {
       const isInWatchlist = watchlist.some(w => w.coinId === coin.id);
       
       if (isInWatchlist) {
-        await axios.delete(`http://localhost:5000/api/search/watchlist/${coin.id}`, {
+        await axios.delete(`${API_ENDPOINTS.SEARCH_WATCHLIST}/${coin.id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        await axios.post('http://localhost:5000/api/search/watchlist', {
+        await axios.post(API_ENDPOINTS.SEARCH_WATCHLIST, {
           coinId: coin.id,
           coinName: coin.name,
           coinSymbol: coin.symbol
@@ -154,7 +155,7 @@ const GlobalSearchBar = () => {
         return;
       }
 
-      await axios.post('http://localhost:5000/api/search/filters', {
+      await axios.post(API_ENDPOINTS.SEARCH_FILTERS, {
         name: filterName,
         filters
       }, {
@@ -179,7 +180,7 @@ const GlobalSearchBar = () => {
   const deleteSavedFilter = async (filterId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/search/filters/${filterId}`, {
+      await axios.delete(`${API_ENDPOINTS.SEARCH_FILTERS}/${filterId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchSavedFilters();

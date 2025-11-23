@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import { API_ENDPOINTS } from '../config/apiConfig';
 
 const TwoFactorSettings = () => {
   const { currentUser } = useAuth();
@@ -22,7 +23,7 @@ const TwoFactorSettings = () => {
   const checkTwoFactorStatus = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/2fa/status', {
+      const response = await axios.get(API_ENDPOINTS.TWO_FACTOR_STATUS, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setTwoFactorEnabled(response.data.twoFactorEnabled);
@@ -40,7 +41,7 @@ const TwoFactorSettings = () => {
   const loadBackupCodes = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/2fa/backup-codes', {
+      const response = await axios.get(API_ENDPOINTS.TWO_FACTOR_BACKUP_CODES, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setBackupCodes(response.data.backupCodes);
@@ -56,7 +57,7 @@ const TwoFactorSettings = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        'http://localhost:5000/api/2fa/setup',
+        API_ENDPOINTS.TWO_FACTOR_SETUP,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -79,7 +80,7 @@ const TwoFactorSettings = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        'http://localhost:5000/api/2fa/verify',
+        API_ENDPOINTS.TWO_FACTOR_VERIFY,
         { token: verificationCode },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -103,7 +104,7 @@ const TwoFactorSettings = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        'http://localhost:5000/api/2fa/disable',
+        API_ENDPOINTS.TWO_FACTOR_DISABLE,
         { password },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -134,7 +135,7 @@ const TwoFactorSettings = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        'http://localhost:5000/api/2fa/regenerate-backup-codes',
+        API_ENDPOINTS.TWO_FACTOR_REGENERATE_CODES,
         { password },
         { headers: { Authorization: `Bearer ${token}` } }
       );

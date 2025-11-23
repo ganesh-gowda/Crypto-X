@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
+import { API_ENDPOINTS } from '../config/apiConfig';
 
 const VerifyEmail = () => {
   const [searchParams] = useSearchParams();
@@ -21,7 +22,7 @@ const VerifyEmail = () => {
 
   const verifyEmail = async () => {
     try {
-      const response = await axios.post('http://localhost:5000/api/verify/confirm', {
+      const response = await axios.post(API_ENDPOINTS.VERIFY_CONFIRM, {
         token,
       });
 

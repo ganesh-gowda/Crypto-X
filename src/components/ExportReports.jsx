@@ -3,6 +3,7 @@ import axios from 'axios';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { FaFilePdf, FaFileCsv, FaFileInvoice, FaDownload, FaLightbulb } from 'react-icons/fa';
+import { API_ENDPOINTS } from '../config/apiConfig';
 
 const ExportReports = ({ className = '' }) => {
   const [loading, setLoading] = useState(false);
@@ -17,7 +18,7 @@ const ExportReports = ({ className = '' }) => {
   const exportPortfolioPDF = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5000/api/reports/portfolio-data', {
+      const response = await axios.get(API_ENDPOINTS.REPORTS_PORTFOLIO, {
         headers: getAuthHeader()
       });
 
@@ -114,7 +115,7 @@ const ExportReports = ({ className = '' }) => {
   const exportTransactionsCSV = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5000/api/reports/transactions-csv', {
+      const response = await axios.get(API_ENDPOINTS.REPORTS_TRANSACTIONS_CSV, {
         headers: getAuthHeader()
       });
 
@@ -152,7 +153,7 @@ const ExportReports = ({ className = '' }) => {
   const exportAlertsCSV = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5000/api/reports/alerts-csv', {
+      const response = await axios.get(API_ENDPOINTS.REPORTS_ALERTS_CSV, {
         headers: getAuthHeader()
       });
 
@@ -195,7 +196,7 @@ const ExportReports = ({ className = '' }) => {
   const exportTaxReport = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`http://localhost:5000/api/reports/tax-report?year=${selectedYear}`, {
+      const response = await axios.get(`${API_ENDPOINTS.REPORTS_TAX}?year=${selectedYear}`, {
         headers: getAuthHeader()
       });
 

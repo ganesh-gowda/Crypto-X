@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import { API_ENDPOINTS } from '../config/apiConfig';
 
 const VerificationBanner = () => {
   const { currentUser } = useAuth();
@@ -24,7 +25,7 @@ const VerificationBanner = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        'http://localhost:5000/api/verify/send',
+        API_ENDPOINTS.VERIFY_SEND,
         {},
         {
           headers: {
