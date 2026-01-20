@@ -12,18 +12,25 @@ router.post('/signup', async (req, res) => {
     const { email, password, displayName } = req.body;
     const { db } = await connectToDatabase();
     
-    // Check if user exists
+    // Check if user exists by email
     const existingUser = await db.collection('users').findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
     }
     
+    // Check if username is taken (using displayName as username)
+    const existingUsername = await db.collection('users').findOne({ username: displayName });
+    if (existingUsername) {
+      return res.status(400).json({ message: 'Username already taken' });
+    }
+    
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
     
-    // Create user
+    // Create user - include both username and displayName
     const newUser = {
       email,
+      username: displayName, // Store as username for the index
       displayName,
       password: hashedPassword,
       createdAt: new Date().toISOString()
