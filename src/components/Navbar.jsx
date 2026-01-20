@@ -1,17 +1,17 @@
-
 import React, { useState, useContext } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { FaBars, FaTimes, FaUser } from 'react-icons/fa';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { AppContext } from '../App';
+import { Icons } from './Icons';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { currentUser, logout } = useAuth();
   const { vsCurrency, setVsCurrency } = useContext(AppContext);
   const navigate = useNavigate();
+  const location = useLocation();
   
-  // Add state to control dropdown visibility
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -23,174 +23,251 @@ const Navbar = () => {
     }
   };
 
+  const isActive = (path) => location.pathname === path;
+
+  const navLinks = [
+    { to: '/', label: 'Home', icon: Icons.Home },
+    { to: '/market', label: 'Market', icon: Icons.Chart },
+    { to: '/news', label: 'News', icon: Icons.News },
+  ];
+
   return (
-    <nav className="bg-gray-800 py-4 px-6 shadow-lg">
-      <div className="container mx-auto flex justify-between items-center">
-        <Link to="/" className="text-2xl font-days font-bold text-white">
-          Crypto<span className="text-crypto-purple">X</span>
-        </Link>
-        
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-6">
-          <Link to="/" className="text-white hover:text-crypto-purple transition-colors">
-            Home
-          </Link>
-          <Link to="/market" className="text-white hover:text-crypto-purple transition-colors">
-            Market
-          </Link>
-          <Link to="/news" className="text-white hover:text-crypto-purple transition-colors">
-            News
+    <nav className="sticky top-0 z-50 glass-card border-0 border-b border-white/10 rounded-none">
+      <div className="container mx-auto px-6 py-4">
+        <div className="flex justify-between items-center">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2 group">
+            <motion.div
+              whileHover={{ rotate: 360 }}
+              transition={{ duration: 0.5 }}
+              className="w-10 h-10 rounded-xl bg-purple-gradient flex items-center justify-center shadow-glow"
+            >
+              <span className="text-white font-bold text-xl">C</span>
+            </motion.div>
+            <span className="text-2xl font-days font-bold text-white">
+              Crypto<span className="gradient-text-purple">X</span>
+            </span>
           </Link>
           
-          {currentUser ? (
-            <>
-              <Link to="/portfolio" className="text-white hover:text-crypto-purple transition-colors">
-                Portfolio
-              </Link>
-              <div className="relative">
-                <button 
-                  className="flex items-center text-white hover:text-crypto-purple transition-colors"
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                  onMouseEnter={() => setDropdownOpen(true)}
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-2">
+            {navLinks.map((link) => {
+              const IconComponent = link.icon;
+              return (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={`relative flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 ${
+                    isActive(link.to)
+                      ? 'bg-crypto-purple/20 text-white'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
                 >
-                  <FaUser className="mr-2" />
-                  {currentUser.displayName || 'User'}
-                </button>
-                {dropdownOpen && (
-                  <div 
-                    className="absolute right-0 mt-2 w-48 bg-gray-700 rounded-lg shadow-xl py-2 z-10"
-                    onMouseEnter={() => setDropdownOpen(true)}
-                    onMouseLeave={() => setDropdownOpen(false)}
-                  >
-                    <button
-                      onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-white hover:bg-gray-600 transition-colors"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              <Link to="/login" className="text-white hover:text-crypto-purple transition-colors">
-                Login
-              </Link>
-              <Link 
-                to="/signup" 
-                className="bg-crypto-purple hover:bg-opacity-90 text-white px-4 py-2 rounded-lg transition-colors"
-              >
-                Sign Up
-              </Link>
-            </>
-          )}
-          
-          {/* Currency Selector */}
-          <select 
-            value={vsCurrency}
-            onChange={(e) => setVsCurrency(e.target.value)}
-            className="bg-gray-700 text-white rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-crypto-purple"
-          >
-            <option value="usd">USD</option>
-            <option value="inr">INR</option>
-            <option value="eur">EUR</option>
-            <option value="gbp">GBP</option>
-            <option value="jpy">JPY</option>
-          </select>
-        </div>
-        
-        {/* Mobile Navigation Toggle */}
-        <button 
-          className="md:hidden text-white"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          {isOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
-        </button>
-      </div>
-      
-      {/* Mobile Navigation Menu */}
-      {isOpen && (
-        <div className="md:hidden bg-gray-800 mt-4 py-4 px-6">
-          <div className="flex flex-col space-y-4">
-            <Link 
-              to="/" 
-              className="text-white hover:text-crypto-purple transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              Home
-            </Link>
-            <Link 
-              to="/market" 
-              className="text-white hover:text-crypto-purple transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              Market
-            </Link>
-            <Link 
-              to="/news" 
-              className="text-white hover:text-crypto-purple transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              News
-            </Link>
+                  <IconComponent className="w-5 h-5" />
+                  <span className="font-medium">{link.label}</span>
+                  {isActive(link.to) && (
+                    <motion.div
+                      layoutId="activeNav"
+                      className="absolute inset-0 bg-crypto-purple/20 rounded-xl -z-10"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
+                </Link>
+              );
+            })}
             
             {currentUser ? (
               <>
-                <Link 
-                  to="/portfolio" 
-                  className="text-white hover:text-crypto-purple transition-colors"
-                  onClick={() => setIsOpen(false)}
+                <Link
+                  to="/portfolio"
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 ${
+                    isActive('/portfolio')
+                      ? 'bg-crypto-purple/20 text-white'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
                 >
-                  Portfolio
+                  <Icons.Wallet className="w-5 h-5" />
+                  <span className="font-medium">Portfolio</span>
                 </Link>
-                <button
-                  onClick={() => {
-                    handleLogout();
-                    setIsOpen(false);
-                  }}
-                  className="text-white hover:text-crypto-purple transition-colors text-left"
-                >
-                  Logout
-                </button>
+                
+                {/* User Dropdown */}
+                <div className="relative ml-2">
+                  <motion.button 
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white hover:border-crypto-purple/30 transition-all duration-300"
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-purple-gradient flex items-center justify-center">
+                      <Icons.User className="w-4 h-4" />
+                    </div>
+                    <span className="font-medium max-w-[100px] truncate">
+                      {currentUser.displayName || 'User'}
+                    </span>
+                  </motion.button>
+                  
+                  <AnimatePresence>
+                    {dropdownOpen && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute right-0 mt-2 w-48 glass-card py-2 z-50"
+                        onMouseLeave={() => setDropdownOpen(false)}
+                      >
+                        <button
+                          onClick={handleLogout}
+                          className="flex items-center gap-3 w-full px-4 py-3 text-left text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200"
+                        >
+                          <Icons.Logout className="w-5 h-5" />
+                          <span>Logout</span>
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </>
             ) : (
-              <>
+              <div className="flex items-center gap-3 ml-2">
                 <Link 
                   to="/login" 
-                  className="text-white hover:text-crypto-purple transition-colors"
-                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-2 px-4 py-2 text-gray-400 hover:text-white transition-colors"
                 >
-                  Login
+                  <Icons.Login className="w-5 h-5" />
+                  <span className="font-medium">Login</span>
                 </Link>
-                <Link 
-                  to="/signup" 
-                  className="bg-crypto-purple hover:bg-opacity-90 text-white px-4 py-2 rounded-lg transition-colors inline-block"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Sign Up
-                </Link>
-              </>
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Link to="/signup" className="btn-primary flex items-center gap-2">
+                    <span>Sign Up</span>
+                    <Icons.ArrowRight className="w-4 h-4" />
+                  </Link>
+                </motion.div>
+              </div>
             )}
             
-            {/* Mobile Currency Selector - update options here too */}
-            <div className="pt-2">
-              <label className="block text-gray-400 mb-1">Currency</label>
+            {/* Currency Selector */}
+            <div className="ml-4 pl-4 border-l border-white/10">
               <select 
                 value={vsCurrency}
                 onChange={(e) => setVsCurrency(e.target.value)}
-                className="bg-gray-700 text-white rounded-lg px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-crypto-purple"
+                className="bg-white/5 border border-white/10 text-white rounded-xl px-3 py-2 focus:outline-none focus:border-crypto-purple/50 transition-all duration-300 cursor-pointer"
               >
-                <option value="usd">USD</option>
-                <option value="inr">INR</option>
-                <option value="eur">EUR</option>
-                <option value="gbp">GBP</option>
-                <option value="jpy">JPY</option>
+                <option value="usd" className="bg-crypto-dark">USD</option>
+                <option value="inr" className="bg-crypto-dark">INR</option>
+                <option value="eur" className="bg-crypto-dark">EUR</option>
+                <option value="gbp" className="bg-crypto-dark">GBP</option>
+                <option value="jpy" className="bg-crypto-dark">JPY</option>
               </select>
             </div>
           </div>
+          
+          {/* Mobile Navigation Toggle */}
+          <motion.button 
+            whileTap={{ scale: 0.9 }}
+            className="md:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 text-white"
+            onClick={() => setIsOpen(!isOpen)}
+          >
+            {isOpen ? <Icons.Close className="w-6 h-6" /> : <Icons.Menu className="w-6 h-6" />}
+          </motion.button>
         </div>
-      )}
+      </div>
+      
+      {/* Mobile Navigation Menu */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="md:hidden border-t border-white/10 overflow-hidden"
+          >
+            <div className="container mx-auto px-6 py-6 flex flex-col gap-2">
+              {navLinks.map((link) => {
+                const IconComponent = link.icon;
+                return (
+                  <Link 
+                    key={link.to}
+                    to={link.to} 
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
+                      isActive(link.to)
+                        ? 'bg-crypto-purple/20 text-white'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <IconComponent className="w-5 h-5" />
+                    <span className="font-medium">{link.label}</span>
+                  </Link>
+                );
+              })}
+              
+              {currentUser ? (
+                <>
+                  <Link 
+                    to="/portfolio" 
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
+                      isActive('/portfolio')
+                        ? 'bg-crypto-purple/20 text-white'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <Icons.Wallet className="w-5 h-5" />
+                    <span className="font-medium">Portfolio</span>
+                  </Link>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsOpen(false);
+                    }}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-300"
+                  >
+                    <Icons.Logout className="w-5 h-5" />
+                    <span className="font-medium">Logout</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link 
+                    to="/login" 
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-300"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <Icons.Login className="w-5 h-5" />
+                    <span className="font-medium">Login</span>
+                  </Link>
+                  <Link 
+                    to="/signup" 
+                    className="btn-primary flex items-center justify-center gap-2 mt-2"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <span>Sign Up</span>
+                    <Icons.ArrowRight className="w-4 h-4" />
+                  </Link>
+                </>
+              )}
+              
+              {/* Mobile Currency Selector */}
+              <div className="pt-4 mt-2 border-t border-white/10">
+                <label className="block text-gray-500 text-sm mb-2">Currency</label>
+                <select 
+                  value={vsCurrency}
+                  onChange={(e) => setVsCurrency(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-crypto-purple/50"
+                >
+                  <option value="usd" className="bg-crypto-dark">USD</option>
+                  <option value="inr" className="bg-crypto-dark">INR</option>
+                  <option value="eur" className="bg-crypto-dark">EUR</option>
+                  <option value="gbp" className="bg-crypto-dark">GBP</option>
+                  <option value="jpy" className="bg-crypto-dark">JPY</option>
+                </select>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 };

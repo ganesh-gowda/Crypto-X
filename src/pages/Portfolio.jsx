@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AppContext } from "../App";
 import Navbar from '../components/Navbar';
 import { getAllCurrencies } from "../context/coinContext";
-import { FaPlus, FaTrash, FaEdit } from 'react-icons/fa';
+import { Icons } from '../components/Icons';
 import PriceAlerts from '../components/PriceAlerts';
 
 const Portfolio = () => {
@@ -109,151 +110,229 @@ const Portfolio = () => {
     return ((coin.current_price - item.purchasePrice) / item.purchasePrice) * 100;
   };
 
+  // Calculate stats
+  const totalInvestment = portfolio.reduce((total, item) => total + (item.purchasePrice * item.amount), 0);
+  const profitLoss = totalValue - totalInvestment;
+  const percentChange = totalInvestment > 0 ? ((totalValue - totalInvestment) / totalInvestment) * 100 : 0;
+
   return (
-    <div className="min-h-screen bg-crypto-dark">
+    <div className="min-h-screen bg-crypto-dark text-white">
+      {/* Background decorations */}
+      <div className="fixed inset-0 bg-grid opacity-30 pointer-events-none" />
+      <div className="fixed top-20 right-1/4 w-96 h-96 bg-crypto-purple/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="fixed bottom-20 left-1/4 w-96 h-96 bg-crypto-accent/5 rounded-full blur-3xl pointer-events-none" />
+      
       <Navbar />
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-days font-bold">Your Portfolio</h1>
-          <button 
+      <div className="container mx-auto px-4 py-8 relative">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-8"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-crypto-purple/20 flex items-center justify-center">
+              <Icons.Wallet className="w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-days font-bold">Your Portfolio</h1>
+              <p className="text-gray-400">Track your crypto investments</p>
+            </div>
+          </div>
+          <motion.button 
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={handleAddCoin}
-            className="bg-crypto-purple hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg flex items-center"
+            className="btn-primary flex items-center gap-2"
           >
-            <FaPlus className="mr-2" /> Add Coin
-          </button>
-        </div>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Add Coin
+          </motion.button>
+        </motion.div>
 
         {portfolio.length === 0 ? (
-          <div className="bg-gray-800 rounded-xl p-8 text-center">
-            <h2 className="text-2xl mb-4">Your portfolio is empty</h2>
-            <p className="text-gray-400 mb-6">Start tracking your crypto investments by adding coins to your portfolio.</p>
-            <button 
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass-card p-12 text-center"
+          >
+            <div className="w-20 h-20 rounded-2xl bg-crypto-purple/20 flex items-center justify-center mx-auto mb-6">
+              <Icons.Wallet className="w-10 h-10 opacity-50" />
+            </div>
+            <h2 className="text-2xl font-bold mb-4">Your portfolio is empty</h2>
+            <p className="text-gray-400 mb-8 max-w-md mx-auto">
+              Start tracking your crypto investments by adding coins to your portfolio.
+            </p>
+            <motion.button 
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={handleAddCoin}
-              className="bg-crypto-purple hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg"
+              className="btn-primary"
             >
               Add Your First Coin
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         ) : (
           <>
-            <div className="bg-gray-800 rounded-xl p-6 mb-8 shadow-card">
-              <h2 className="text-xl font-semibold mb-4">Portfolio Value</h2>
-              <p className="text-3xl font-bold">${totalValue.toLocaleString()}</p>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="glass-card p-6"
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-lg bg-crypto-purple/20 flex items-center justify-center">
+                    <Icons.Chart className="w-5 h-5" />
+                  </div>
+                  <span className="text-gray-400 font-medium">Portfolio Value</span>
+                </div>
+                <p className="text-3xl font-bold">${totalValue.toLocaleString()}</p>
+              </motion.div>
+
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+                className="glass-card p-6"
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-lg bg-crypto-accent/20 flex items-center justify-center">
+                    <Icons.Wallet className="w-5 h-5" />
+                  </div>
+                  <span className="text-gray-400 font-medium">Total Invested</span>
+                </div>
+                <p className="text-3xl font-bold">${totalInvestment.toLocaleString()}</p>
+              </motion.div>
+
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="glass-card p-6"
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                    profitLoss >= 0 ? 'bg-crypto-accent/20' : 'bg-crypto-warning/20'
+                  }`}>
+                    {profitLoss >= 0 
+                      ? <Icons.TrendingUp className="w-5 h-5" />
+                      : <Icons.TrendingDown className="w-5 h-5" />
+                    }
+                  </div>
+                  <span className="text-gray-400 font-medium">Profit/Loss</span>
+                </div>
+                <p className={`text-3xl font-bold ${profitLoss >= 0 ? 'text-crypto-accent' : 'text-crypto-warning'}`}>
+                  {profitLoss >= 0 ? '+' : ''}{profitLoss.toLocaleString()} 
+                  <span className="text-lg ml-2">({percentChange >= 0 ? '+' : ''}{percentChange.toFixed(2)}%)</span>
+                </p>
+              </motion.div>
             </div>
 
-            <div className="bg-gray-800 rounded-xl overflow-hidden shadow-card">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-700">
-                  <thead className="bg-gray-700">
-                    <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Coin</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Holdings</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Avg Buy Price</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Current Price</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Profit/Loss</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-700">
-                    {portfolio.map(item => {
-                      const coin = coins.find(c => c.id === item.coinId);
-                      const percentChange = getPercentageChange(item);
-                      const profitLossColor = percentChange >= 0 ? 'text-crypto-accent' : 'text-crypto-warning';
-                      
-                      return coin ? (
-                        <tr key={item.id}>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <img src={coin.image} alt={coin.name} className="w-8 h-8 mr-3" />
-                              <div>
-                                <div className="font-medium">{coin.name}</div>
-                                <div className="text-gray-400">{coin.symbol.toUpperCase()}</div>
-                              </div>
+            {/* Holdings Table */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+              className="glass-card overflow-hidden mb-8"
+            >
+              <table className="crypto-table">
+                <thead>
+                  <tr>
+                    <th>Coin</th>
+                    <th className="text-right">Holdings</th>
+                    <th className="text-right hidden md:table-cell">Avg Buy</th>
+                    <th className="text-right hidden md:table-cell">Current</th>
+                    <th className="text-right">P/L</th>
+                    <th className="text-center w-24">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {portfolio.map((item, index) => {
+                    const coin = coins.find(c => c.id === item.coinId);
+                    const percentChange = getPercentageChange(item);
+                    
+                    return coin ? (
+                      <motion.tr 
+                        key={item.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="group"
+                      >
+                        <td>
+                          <div className="flex items-center gap-3">
+                            <img src={coin.image} alt={coin.name} className="w-10 h-10 rounded-full" />
+                            <div>
+                              <div className="font-semibold">{coin.name}</div>
+                              <div className="text-gray-500 text-sm">{coin.symbol.toUpperCase()}</div>
                             </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="font-medium">{item.amount} {coin.symbol.toUpperCase()}</div>
-                            <div className="text-gray-400">${(item.amount * coin.current_price).toLocaleString()}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            ${item.purchasePrice.toLocaleString()}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            ${coin.current_price.toLocaleString()}
-                          </td>
-                          <td className={`px-6 py-4 whitespace-nowrap ${profitLossColor}`}>
-                            {percentChange.toFixed(2)}%
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          </div>
+                        </td>
+                        <td className="text-right">
+                          <div className="font-medium">{item.amount} {coin.symbol.toUpperCase()}</div>
+                          <div className="text-gray-500 text-sm">${(item.amount * coin.current_price).toLocaleString()}</div>
+                        </td>
+                        <td className="text-right hidden md:table-cell">
+                          ${item.purchasePrice?.toLocaleString()}
+                        </td>
+                        <td className="text-right hidden md:table-cell">
+                          ${coin.current_price.toLocaleString()}
+                        </td>
+                        <td className="text-right">
+                          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-sm font-medium ${
+                            percentChange >= 0 
+                              ? 'bg-crypto-accent/10 text-crypto-accent' 
+                              : 'bg-crypto-warning/10 text-crypto-warning'
+                          }`}>
+                            {percentChange >= 0 
+                              ? <Icons.TrendingUp className="w-3 h-3" />
+                              : <Icons.TrendingDown className="w-3 h-3" />
+                            }
+                            {percentChange >= 0 ? '+' : ''}{percentChange.toFixed(2)}%
+                          </span>
+                        </td>
+                        <td className="text-center">
+                          <div className="flex items-center justify-center gap-2">
                             <button 
                               onClick={() => handleEditCoin(item)}
-                              className="text-indigo-400 hover:text-indigo-300 mr-3"
+                              className="p-2 rounded-lg bg-white/5 hover:bg-crypto-purple/20 text-gray-400 hover:text-crypto-purple transition-all"
                             >
-                              <FaEdit size={18} />
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                              </svg>
                             </button>
                             <button 
                               onClick={() => handleDeleteCoin(item.id)}
-                              className="text-red-400 hover:text-red-300"
+                              className="p-2 rounded-lg bg-white/5 hover:bg-crypto-warning/20 text-gray-400 hover:text-crypto-warning transition-all"
                             >
-                              <FaTrash size={18} />
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
                             </button>
-                          </td>
-                        </tr>
-                      ) : null;
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                          </div>
+                        </td>
+                      </motion.tr>
+                    ) : null;
+                  })}
+                </tbody>
+              </table>
+            </motion.div>
             
-            {/* Portfolio Performance Summary */}
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-gray-800 rounded-xl p-6 shadow-card">
-                <h3 className="text-lg font-semibold mb-2">Total Investment</h3>
-                <p className="text-2xl font-bold">
-                  ${portfolio.reduce((total, item) => {
-                    return total + (item.purchasePrice * item.amount);
-                  }, 0).toLocaleString()}
-                </p>
-              </div>
-              
-              <div className="bg-gray-800 rounded-xl p-6 shadow-card">
-                <h3 className="text-lg font-semibold mb-2">Total Profit/Loss</h3>
-                {(() => {
-                  const investment = portfolio.reduce((total, item) => {
-                    return total + (item.purchasePrice * item.amount);
-                  }, 0);
-                  const profitLoss = totalValue - investment;
-                  const profitLossColor = profitLoss >= 0 ? 'text-crypto-accent' : 'text-crypto-warning';
-                  return (
-                    <p className={`text-2xl font-bold ${profitLossColor}`}>
-                      {profitLoss >= 0 ? '+' : ''}{profitLoss.toLocaleString()}
-                    </p>
-                  );
-                })()}
-              </div>
-              
-              <div className="bg-gray-800 rounded-xl p-6 shadow-card">
-                <h3 className="text-lg font-semibold mb-2">Performance</h3>
-                {(() => {
-                  const investment = portfolio.reduce((total, item) => {
-                    return total + (item.purchasePrice * item.amount);
-                  }, 0);
-                  const percentChange = investment > 0 ? ((totalValue - investment) / investment) * 100 : 0;
-                  const profitLossColor = percentChange >= 0 ? 'text-crypto-accent' : 'text-crypto-warning';
-                  return (
-                    <p className={`text-2xl font-bold ${profitLossColor}`}>
-                      {percentChange >= 0 ? '+' : ''}{percentChange.toFixed(2)}%
-                    </p>
-                  );
-                })()}
-              </div>
-            </div>
-            
-            {/* Portfolio Distribution Chart */}
-            <div className="mt-8 bg-gray-800 rounded-xl p-6 shadow-card">
-              <h3 className="text-xl font-semibold mb-4">Portfolio Distribution</h3>
-              <div className="flex flex-wrap gap-2">
+            {/* Portfolio Distribution */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="glass-card p-6 mb-8"
+            >
+              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                <Icons.Chart className="w-5 h-5" />
+                Portfolio Distribution
+              </h3>
+              <div className="flex flex-wrap gap-3">
                 {portfolio.map(item => {
                   const coin = coins.find(c => c.id === item.coinId);
                   if (!coin) return null;
@@ -262,21 +341,19 @@ const Portfolio = () => {
                   const percentage = (value / totalValue) * 100;
                   
                   return (
-                    <div 
+                    <motion.div 
                       key={item.id} 
-                      className="flex items-center bg-gray-700 rounded-full px-3 py-1"
-                      style={{ 
-                        background: `linear-gradient(90deg, rgba(136, 106, 255, 0.5) ${percentage}%, rgba(64, 64, 64, 0.5) ${percentage}%)` 
-                      }}
+                      whileHover={{ scale: 1.05 }}
+                      className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-4 py-2"
                     >
-                      <img src={coin.image} alt={coin.name} className="w-5 h-5 mr-2" />
-                      <span className="mr-2">{coin.symbol.toUpperCase()}</span>
-                      <span className="text-sm text-gray-300">{percentage.toFixed(1)}%</span>
-                    </div>
+                      <img src={coin.image} alt={coin.name} className="w-6 h-6 rounded-full" />
+                      <span className="font-medium">{coin.symbol.toUpperCase()}</span>
+                      <span className="text-crypto-purple font-semibold">{percentage.toFixed(1)}%</span>
+                    </motion.div>
                   );
                 })}
               </div>
-            </div>
+            </motion.div>
             
             {/* Price Alerts Section */}
             <PriceAlerts />
@@ -285,152 +362,200 @@ const Portfolio = () => {
       </div>
 
       {/* Add Coin Modal */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md">
-            <h2 className="text-2xl font-bold mb-4">Add Coin</h2>
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label className="block text-gray-300 mb-2">Select Coin</label>
-                <select 
-                  value={formData.coinId}
-                  onChange={(e) => setFormData({...formData, coinId: e.target.value})}
-                  className="w-full bg-gray-700 text-white rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-crypto-purple"
-                  required
-                >
-                  <option value="">Select a coin</option>
-                  {coins.map(coin => (
-                    <option key={coin.id} value={coin.id}>{coin.name} ({coin.symbol.toUpperCase()})</option>
-                  ))}
-                </select>
+      <AnimatePresence>
+        {isAddModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            onClick={() => setIsAddModalOpen(false)}
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="glass-card p-6 w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-lg bg-crypto-purple/20 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-crypto-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-bold">Add Coin</h2>
               </div>
-              <div className="mb-4">
-                <label className="block text-gray-300 mb-2">Amount</label>
-                <input 
-                  type="number"
-                  value={formData.amount}
-                  onChange={(e) => setFormData({...formData, amount: e.target.value})}
-                  className="w-full bg-gray-700 text-white rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-crypto-purple"
-                  placeholder="0.00"
-                  step="any"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-300 mb-2">Purchase Price (per coin)</label>
-                <input 
-                  type="number"
-                  value={formData.purchasePrice}
-                  onChange={(e) => setFormData({...formData, purchasePrice: e.target.value})}
-                  className="w-full bg-gray-700 text-white rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-crypto-purple"
-                  placeholder="0.00"
-                  step="any"
-                  required
-                />
-              </div>
-              <div className="mb-6">
-                <label className="block text-gray-300 mb-2">Purchase Date</label>
-                <input 
-                  type="date"
-                  value={formData.purchaseDate}
-                  onChange={(e) => setFormData({...formData, purchaseDate: e.target.value})}
-                  className="w-full bg-gray-700 text-white rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-crypto-purple"
-                  required
-                />
-              </div>
-              <div className="flex justify-end space-x-3">
-                <button 
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit"
-                  className="bg-crypto-purple hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg"
-                >
-                  Add Coin
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-gray-300 mb-2 font-medium">Select Coin</label>
+                  <select 
+                    value={formData.coinId}
+                    onChange={(e) => setFormData({...formData, coinId: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-crypto-purple/50 focus:ring-2 focus:ring-crypto-purple/20"
+                    required
+                  >
+                    <option value="" className="bg-crypto-dark">Select a coin</option>
+                    {coins.map(coin => (
+                      <option key={coin.id} value={coin.id} className="bg-crypto-dark">
+                        {coin.name} ({coin.symbol.toUpperCase()})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-gray-300 mb-2 font-medium">Amount</label>
+                  <input 
+                    type="number"
+                    value={formData.amount}
+                    onChange={(e) => setFormData({...formData, amount: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-crypto-purple/50 focus:ring-2 focus:ring-crypto-purple/20"
+                    placeholder="0.00"
+                    step="any"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-300 mb-2 font-medium">Purchase Price (per coin)</label>
+                  <input 
+                    type="number"
+                    value={formData.purchasePrice}
+                    onChange={(e) => setFormData({...formData, purchasePrice: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-crypto-purple/50 focus:ring-2 focus:ring-crypto-purple/20"
+                    placeholder="0.00"
+                    step="any"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-300 mb-2 font-medium">Purchase Date</label>
+                  <input 
+                    type="date"
+                    value={formData.purchaseDate}
+                    onChange={(e) => setFormData({...formData, purchaseDate: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-crypto-purple/50 focus:ring-2 focus:ring-crypto-purple/20"
+                    required
+                  />
+                </div>
+                <div className="flex gap-3 pt-4">
+                  <button 
+                    type="button"
+                    onClick={() => setIsAddModalOpen(false)}
+                    className="flex-1 btn-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <motion.button 
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="submit"
+                    className="flex-1 btn-primary"
+                  >
+                    Add Coin
+                  </motion.button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Edit Coin Modal */}
-      {isEditModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md">
-            <h2 className="text-2xl font-bold mb-4">Edit Coin</h2>
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label className="block text-gray-300 mb-2">Select Coin</label>
-                <select 
-                  value={formData.coinId}
-                  onChange={(e) => setFormData({...formData, coinId: e.target.value})}
-                  className="w-full bg-gray-700 text-white rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-crypto-purple"
-                  required
-                  disabled
-                >
-                  {coins.map(coin => (
-                    <option key={coin.id} value={coin.id}>{coin.name} ({coin.symbol.toUpperCase()})</option>
-                  ))}
-                </select>
+      <AnimatePresence>
+        {isEditModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            onClick={() => setIsEditModalOpen(false)}
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="glass-card p-6 w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-lg bg-crypto-purple/20 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-crypto-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-bold">Edit Coin</h2>
               </div>
-              <div className="mb-4">
-                <label className="block text-gray-300 mb-2">Amount</label>
-                <input 
-                  type="number"
-                  value={formData.amount}
-                  onChange={(e) => setFormData({...formData, amount: e.target.value})}
-                  className="w-full bg-gray-700 text-white rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-crypto-purple"
-                  placeholder="0.00"
-                  step="any"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-300 mb-2">Purchase Price (per coin)</label>
-                <input 
-                  type="number"
-                  value={formData.purchasePrice}
-                  onChange={(e) => setFormData({...formData, purchasePrice: e.target.value})}
-                  className="w-full bg-gray-700 text-white rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-crypto-purple"
-                  placeholder="0.00"
-                  step="any"
-                  required
-                />
-              </div>
-              <div className="mb-6">
-                <label className="block text-gray-300 mb-2">Purchase Date</label>
-                <input 
-                  type="date"
-                  value={formData.purchaseDate}
-                  onChange={(e) => setFormData({...formData, purchaseDate: e.target.value})}
-                  className="w-full bg-gray-700 text-white rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-crypto-purple"
-                  required
-                />
-              </div>
-              <div className="flex justify-end space-x-3">
-                <button 
-                  type="button"
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit"
-                  className="bg-crypto-purple hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-gray-300 mb-2 font-medium">Coin</label>
+                  <select 
+                    value={formData.coinId}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white opacity-50"
+                    disabled
+                  >
+                    {coins.map(coin => (
+                      <option key={coin.id} value={coin.id} className="bg-crypto-dark">
+                        {coin.name} ({coin.symbol.toUpperCase()})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-gray-300 mb-2 font-medium">Amount</label>
+                  <input 
+                    type="number"
+                    value={formData.amount}
+                    onChange={(e) => setFormData({...formData, amount: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-crypto-purple/50 focus:ring-2 focus:ring-crypto-purple/20"
+                    placeholder="0.00"
+                    step="any"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-300 mb-2 font-medium">Purchase Price (per coin)</label>
+                  <input 
+                    type="number"
+                    value={formData.purchasePrice}
+                    onChange={(e) => setFormData({...formData, purchasePrice: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-crypto-purple/50 focus:ring-2 focus:ring-crypto-purple/20"
+                    placeholder="0.00"
+                    step="any"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-300 mb-2 font-medium">Purchase Date</label>
+                  <input 
+                    type="date"
+                    value={formData.purchaseDate}
+                    onChange={(e) => setFormData({...formData, purchaseDate: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-crypto-purple/50 focus:ring-2 focus:ring-crypto-purple/20"
+                    required
+                  />
+                </div>
+                <div className="flex gap-3 pt-4">
+                  <button 
+                    type="button"
+                    onClick={() => setIsEditModalOpen(false)}
+                    className="flex-1 btn-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <motion.button 
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="submit"
+                    className="flex-1 btn-primary"
+                  >
+                    Save Changes
+                  </motion.button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

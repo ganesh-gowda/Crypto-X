@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
-import { FaExternalLinkAlt, FaSync, FaFilter } from 'react-icons/fa';
+import { Icons } from '../components/Icons';
 
 const News = () => {
   const [news, setNews] = useState([]);
@@ -120,66 +121,75 @@ const News = () => {
     setFilter(newFilter);
   };
 
+  const filters = [
+    { id: 'all', label: 'All News' },
+    { id: 'bitcoin', label: 'Bitcoin' },
+    { id: 'ethereum', label: 'Ethereum' },
+    { id: 'defi', label: 'DeFi' },
+    { id: 'bullish', label: 'Bullish' },
+    { id: 'bearish', label: 'Bearish' },
+  ];
+
   return (
-    <div className="min-h-screen bg-crypto-dark">
+    <div className="min-h-screen bg-crypto-dark text-white">
+      {/* Background decorations */}
+      <div className="fixed inset-0 bg-grid opacity-30 pointer-events-none" />
+      <div className="fixed top-20 left-1/4 w-96 h-96 bg-crypto-purple/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="fixed bottom-20 right-1/4 w-96 h-96 bg-crypto-accent/5 rounded-full blur-3xl pointer-events-none" />
+      
       <Navbar />
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-2">
-          <h1 className="text-3xl font-days font-bold">Crypto News</h1>
-          <button 
+      <div className="container mx-auto px-4 py-8 relative">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-6"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-crypto-purple/20 flex items-center justify-center">
+              <Icons.Globe className="w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-days font-bold">Crypto News</h1>
+              <p className="text-gray-400">Latest updates from the crypto world</p>
+            </div>
+          </div>
+          <motion.button 
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={handleRefresh} 
-            className="flex items-center bg-gray-800 hover:bg-gray-700 text-white py-2 px-4 rounded-lg"
+            className="btn-secondary flex items-center gap-2"
             disabled={loading}
           >
-            <FaSync className={`mr-2 ${loading ? 'animate-spin' : ''}`} /> Refresh
-          </button>
-        </div>
-        <p className="text-gray-400 mb-2">
-          Stay updated with the latest happenings in the cryptocurrency world. Our news section brings you the most recent developments, market trends, and insights from the crypto space.
-        </p>
+            <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh
+          </motion.button>
+        </motion.div>
         
         {/* Filter options */}
-        <div className="flex items-center space-x-2 mb-4">
-          <FaFilter className="text-gray-400" />
-          <div className="flex flex-wrap gap-2">
-            <button 
-              onClick={() => handleFilterChange('all')}
-              className={`px-3 py-1 rounded-lg text-sm ${filter === 'all' ? 'bg-crypto-purple text-white' : 'bg-gray-700 text-gray-300'}`}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="flex flex-wrap gap-2 mb-6"
+        >
+          {filters.map((f) => (
+            <motion.button 
+              key={f.id}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleFilterChange(f.id)}
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                filter === f.id 
+                  ? 'bg-crypto-purple text-white shadow-lg shadow-crypto-purple/30' 
+                  : 'bg-white/5 border border-white/10 text-gray-300 hover:border-crypto-purple/30'
+              }`}
             >
-              All News
-            </button>
-            <button 
-              onClick={() => handleFilterChange('bitcoin')}
-              className={`px-3 py-1 rounded-lg text-sm ${filter === 'bitcoin' ? 'bg-crypto-purple text-white' : 'bg-gray-700 text-gray-300'}`}
-            >
-              Bitcoin
-            </button>
-            <button 
-              onClick={() => handleFilterChange('ethereum')}
-              className={`px-3 py-1 rounded-lg text-sm ${filter === 'ethereum' ? 'bg-crypto-purple text-white' : 'bg-gray-700 text-gray-300'}`}
-            >
-              Ethereum
-            </button>
-            <button 
-              onClick={() => handleFilterChange('defi')}
-              className={`px-3 py-1 rounded-lg text-sm ${filter === 'defi' ? 'bg-crypto-purple text-white' : 'bg-gray-700 text-gray-300'}`}
-            >
-              DeFi
-            </button>
-            <button 
-              onClick={() => handleFilterChange('bullish')}
-              className={`px-3 py-1 rounded-lg text-sm ${filter === 'bullish' ? 'bg-crypto-purple text-white' : 'bg-gray-700 text-gray-300'}`}
-            >
-              Bullish
-            </button>
-            <button 
-              onClick={() => handleFilterChange('bearish')}
-              className={`px-3 py-1 rounded-lg text-sm ${filter === 'bearish' ? 'bg-crypto-purple text-white' : 'bg-gray-700 text-gray-300'}`}
-            >
-              Bearish
-            </button>
-          </div>
-        </div>
+              {f.label}
+            </motion.button>
+          ))}
+        </motion.div>
         
         {lastUpdated && (
           <p className="text-sm text-gray-500 mb-6">
@@ -188,45 +198,63 @@ const News = () => {
         )}
         
         {error && (
-          <div className="bg-red-500 bg-opacity-20 text-red-400 p-4 rounded-lg mb-6">
-            {error}
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass-card border-crypto-warning/30 p-4 mb-6"
+          >
+            <p className="text-crypto-warning">{error}</p>
+          </motion.div>
         )}
         
         {loading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-crypto-purple"></div>
+            <div className="loader"></div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {news.map(item => (
-              <div key={item.id} className="bg-gray-800 rounded-xl overflow-hidden shadow-card hover:shadow-lg transition-shadow">
+            {news.map((item, index) => (
+              <motion.div 
+                key={item.id} 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className="glass-card-hover overflow-hidden group"
+              >
                 {item.imageUrl && (
-                  <div className="h-48 bg-gray-700 flex items-center justify-center">
-                    <img src={item.imageUrl} alt={item.title} className="h-full w-full object-cover" />
+                  <div className="h-48 bg-crypto-dark-lighter overflow-hidden">
+                    <img 
+                      src={item.imageUrl} 
+                      alt={item.title} 
+                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                    />
                   </div>
                 )}
-                <div className="p-4">
-                  <h2 className="text-xl font-semibold mb-2">{item.title}</h2>
-                  <p className="text-gray-400 mb-4 overflow-hidden" style={{display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical'}}>
+                <div className="p-5">
+                  <h2 className="text-lg font-semibold mb-3 line-clamp-2 group-hover:text-crypto-purple transition-colors">
+                    {item.title}
+                  </h2>
+                  <p className="text-gray-400 text-sm mb-4 line-clamp-3">
                     {item.description}
                   </p>
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <span className="text-sm text-gray-500">{new Date(item.publishedAt).toLocaleDateString()}</span>
-                      <span className="text-sm text-gray-500 ml-2">• {item.source}</span>
+                  <div className="flex justify-between items-center pt-4 border-t border-white/5">
+                    <div className="text-sm text-gray-500">
+                      <span>{new Date(item.publishedAt).toLocaleDateString()}</span>
+                      <span className="mx-2">•</span>
+                      <span>{item.source}</span>
                     </div>
                     <a 
                       href={item.url} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="flex items-center text-crypto-purple hover:text-purple-400"
+                      className="flex items-center gap-1 text-crypto-purple hover:text-crypto-purple-light font-medium text-sm transition-colors"
                     >
-                      Read more <FaExternalLinkAlt className="ml-1" size={14} />
+                      Read
+                      <Icons.ArrowRight className="w-4 h-4" />
                     </a>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         )}
