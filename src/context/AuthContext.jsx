@@ -39,6 +39,9 @@ export const AuthProvider = ({ children }) => {
       // Persist token for session continuity
       if (response.data?.token) {
         localStorage.setItem('token', response.data.token);
+        // Set the current user (exclude token from user object)
+        const { token, ...userData } = response.data;
+        setCurrentUser(userData);
       }
       return response.data;
     } catch (error) {
@@ -56,6 +59,9 @@ export const AuthProvider = ({ children }) => {
       // Persist token for session continuity
       if (response.data?.token) {
         localStorage.setItem('token', response.data.token);
+        // Set the current user (exclude token from user object)
+        const { token, ...userData } = response.data;
+        setCurrentUser(userData);
       }
       return response.data;
     } catch (error) {
